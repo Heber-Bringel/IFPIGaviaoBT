@@ -4,8 +4,8 @@ export type produto = {
     categoriaNome: string;
     preco: number;
     descricao: string;
-    proteinas: number;
-    carboidratos: number;
+    proteinas: string;
+    carboidratos: string;
     imagemPequenaUrl: string;
     imagemGrandeUrl: string;
 }
