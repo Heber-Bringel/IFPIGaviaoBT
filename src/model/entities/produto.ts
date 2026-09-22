@@ -1,6 +1,6 @@
 export type produto = {
     id: string;
-    categoriaid: string;
+    categoriaId: string;
     categoriaNome: string;
     nome: string;
     preco: number;
