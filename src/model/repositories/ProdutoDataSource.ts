@@ -1,10 +1,9 @@
 import { produto } from "../entities/produto";
-import { IProdutoRepository } from "./IProdutoRepository";
 
 export const ProdutoBD: produto[] = [
     {
         id: "1",
-        categoriaid: "1",
+        categoriaId: "1",
         categoriaNome: "Comida",
         nome: "Pastel de Carne",
         preco: 6.0,
@@ -17,7 +16,7 @@ export const ProdutoBD: produto[] = [
     },
     {
         id: "2",
-        categoriaid: "1",
+        categoriaId: "1",
         categoriaNome: "Comida",
         nome: "Coxinha de Frango",
         preco: 7.0,
@@ -30,7 +29,7 @@ export const ProdutoBD: produto[] = [
     },
     {
         id: "3",
-        categoriaid: "1",
+        categoriaId: "1",
         categoriaNome: "Comida",
         nome: "Cuscuz com Ovo",
         preco: 8.0,
@@ -43,7 +42,7 @@ export const ProdutoBD: produto[] = [
     },
     {
         id: "4",
-        categoriaid: "1",
+        categoriaId: "1",
         categoriaNome: "Comida",
         nome: "Arrumadinho Completo",
         preco: 14.0,
@@ -56,7 +55,7 @@ export const ProdutoBD: produto[] = [
     },
     {
         id: "5",
-        categoriaid: "2",
+        categoriaId: "2",
         categoriaNome: "Bebida",
         nome: "Suco de Laranja",
         preco: 7.0,
@@ -69,7 +68,7 @@ export const ProdutoBD: produto[] = [
     },
     {
         id: "6",
-        categoriaid: "2",
+        categoriaId: "2",
         categoriaNome: "Bebida",
         nome: "Refrigerante Lata",
         preco: 5.0,
@@ -82,7 +81,7 @@ export const ProdutoBD: produto[] = [
     },
     {
         id: "7",
-        categoriaid: "2",
+        categoriaId: "2",
         categoriaNome: "Bebida",
         nome: "Café Expresso",
         preco: 4.0,
@@ -95,7 +94,7 @@ export const ProdutoBD: produto[] = [
     },
     {
         id: "8",
-        categoriaid: "2",
+        categoriaId: "2",
         categoriaNome: "Bebida",
         nome: "Suco de Acerola",
         preco: 6.5,
@@ -108,14 +107,20 @@ export const ProdutoBD: produto[] = [
     },
 ];
 
-export class ProdutoDataSource implements IProdutoRepository {
+class ProdutoDataSource {
+    private DELAY_MS = 600;
+
     public async buscarPorId(produtoId: string): Promise<produto> {
+        await new Promise((resolve) => setTimeout(resolve, this.DELAY_MS));
         const produto = ProdutoBD.find((produto: produto) => produto.id == produtoId);
         return produto!;
     }
 
     public async buscarPorCategoria(categoriaId: string): Promise<produto[]> {
-        const produtos = ProdutoBD.filter((produto: produto) => produto.categoriaid == categoriaId);
+        await new Promise((resolve) => setTimeout(resolve, this.DELAY_MS));
+        const produtos = ProdutoBD.filter((produto: produto) => produto.categoriaId == categoriaId);
         return produtos;
     }
 }
+
+export const produtoDataSource: ProdutoDataSource = new ProdutoDataSource();

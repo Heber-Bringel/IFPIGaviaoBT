@@ -1,3 +1,5 @@
+import { ImageSourcePropType } from "react-native";
+
 export type produto = {
     id: string;
     categoriaId: string;
@@ -8,6 +10,6 @@ export type produto = {
     proteinas: string;
     carboidratos: string;
     gorduras: string;
-    imagemPequenaUrl: string;
-    imagemGrandeUrl: string;
+    imagemPequenaUrl: ImageSourcePropType;
+    imagemGrandeUrl: ImageSourcePropType;
 }

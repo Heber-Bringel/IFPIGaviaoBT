@@ -16,3 +16,19 @@ export const CategoriaBD: categoria[] = [
         imagemUrl: require("../../../assets/images/menu/categoria-bebidas.png"),
     },
 ];
+
+class CategoriaDataSource {
+    private DELAY_MS = 600;
+
+    public async BuscarCategorias() {
+        await new Promise((resolve) => setTimeout(resolve, this.DELAY_MS));
+        return [...CategoriaBD];
+    }
+
+     public async buscarPorId(categoriaId: string): Promise<categoria | undefined> {                                                                                   
+        await new Promise((resolve) => setTimeout(resolve, this.DELAY_MS));                                                                                           
+        return CategoriaBD.find((cat) => cat.id === categoriaId);                                                                                                     
+    } 
+}
+
+export const categoriaDataSource = new CategoriaDataSource();
