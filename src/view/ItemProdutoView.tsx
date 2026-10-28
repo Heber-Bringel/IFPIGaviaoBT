@@ -1,7 +1,7 @@
 import { formatarPreco } from "@/utils/formatadorDePreco";
 import { useItemProdutoViewModel } from "@/viewmodel/useItemProdutoViewModel";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
     ActivityIndicator,
     Image,
@@ -15,7 +15,8 @@ import { styles } from "./styles/itemProdutoStyle";
 
 const ItemDetailScreen = () => {
     const router = useRouter();
-    const vm = useItemProdutoViewModel();
+    const { id } = useLocalSearchParams<{ id?: string | string[] }>();
+    const vm = useItemProdutoViewModel((Array.isArray(id) ? id[0] : id) ?? "");
 
     return (
         <View style={styles.tela}>
@@ -44,6 +45,10 @@ const ItemDetailScreen = () => {
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#501673" />
                     <Text style={styles.loadingTexto}>Carregando detalhes do item...</Text>
+                </View>
+            ) : vm.erro ? (
+                <View style={styles.erroContainer}>
+                    <Text accessibilityRole="alert" style={styles.erroTexto}>{vm.erro}</Text>
                 </View>
             ) : vm.produto ? (
                 <ScrollView

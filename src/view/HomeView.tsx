@@ -51,6 +51,10 @@ const HomeScreen = () => {
             <ActivityIndicator size="large" color="#501673" />
             <Text style={styles.loadingTexto}>Consultando cardápio...</Text>
           </View>
+        ) : vm.erro ? (
+          <View style={styles.loadingContainer}>
+            <Text accessibilityRole="alert" style={styles.loadingTexto}>{vm.erro}</Text>
+          </View>
         ) : (
           <View style={styles.gridCategorias}>
             {vm.categorias.map((cat) => (
@@ -58,7 +62,7 @@ const HomeScreen = () => {
                 key={cat.id}
                 activeOpacity={0.88}
                 style={[styles.cardCategoria, { borderColor: cat.corBorda }]}
-                onPress={() => router.push(`/category/${cat.id}` as any)}
+                onPress={() => router.push({ pathname: "/category/[id]", params: { id: cat.id } })}
               >
                 {/* Imagem de Capa da Categoria */}
                 <Image
