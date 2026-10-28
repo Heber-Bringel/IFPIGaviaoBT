@@ -1,62 +1,46 @@
-import { produto } from "@/model/entities/produto";
-import { produtoDataSource } from "@/model/repositories/ProdutoDataSource";
-import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
+import { menuUseCases } from "../di/container";
+import type { produto } from "../model/entities/produto";
+import { DomainError } from "../model/errors";
+import type { IMenuUseCases } from "../usecase/iMenuUseCases";
 
-export type ProdutoState = {
-    produto: produto | null;
-    carregando: boolean;
-    quantidade: number;
-}
-
-export type ProdutoActions = {
-    incrementarQuantidade: () => void;
-    decrementarQuantidade: () => void;
-}
-
-export function useItemProdutoViewModel(): ProdutoState & ProdutoActions {
-    const [carregando, setCarregando] = useState<boolean>(true);
+export function useItemProdutoViewModel(id: string, useCases: IMenuUseCases = menuUseCases) {
     const [produto, setProduto] = useState<produto | null>(null);
-    const [quantidade, setQuantidade] = useState<number>(1);
+    const [quantidade, setQuantidade] = useState(1);
+    const [carregando, setCarregando] = useState(true);
+    const [erro, setErro] = useState<string | null>(null);
 
-    const { id } = useLocalSearchParams<{ id: string }>();
+    useEffect(() => {
+        let ativo = true;
+        setCarregando(true);
+        setErro(null);
+        setProduto(null);
+        setQuantidade(1);
+        async function carregar() {
+            try {
+                const resultado = await useCases.buscarProduto(id);
+                if (!ativo) return;
+                setProduto(resultado);
+            } catch (err) {
+                if (ativo) setErro(err instanceof DomainError ? err.message : "Não foi possível carregar o cardápio. Tente novamente.");
+            } finally {
+                if (ativo) setCarregando(false);
+            }
+        }
+        void carregar();
+        return () => { ativo = false; };
+    }, [id, useCases]);
 
-    async function carregarDetalhes() {
-        if (!id) return;
+    function alterarQuantidade(acao: (atual: number) => number) {
         try {
-            setCarregando(true);
-            const prodId = Array.isArray(id) ? id[0] : id;
-            const resultado = await produtoDataSource.buscarPorId(prodId);
-            setProduto(resultado ?? null);
-        } catch (erro) {
-            console.error("Erro ao buscar detalhes do produto:", erro);
-        } finally {
-            setCarregando(false);
+            setQuantidade(acao(quantidade));
+            setErro(null);
+        } catch (err) {
+            setErro(err instanceof DomainError ? err.message : "Não foi possível alterar a quantidade.");
         }
     }
 
-    useEffect(() => {
-        carregarDetalhes();
-    }, [id]);
-
-    // Ações de incremento e decremento (regras da ViewModel)                                                                                                                       
-      function incrementarQuantidade() {                                                                                                                                              
-        setQuantidade((prev) => prev + 1);                                                                                                                                            
-      }                                                                                                                                                                               
-                                                                                                                                                                                      
-      function decrementarQuantidade() {                                                                                                                                              
-        if (quantidade > 1) {                                                                                                                                                         
-          setQuantidade((prev) => prev - 1);                                                                                                                                          
-        }                                                                                                                                                                             
-      }                                                                                                                                                                               
-                                                                                                                                                                                      
-      return {                                                                                                                                                                        
-        // Estado                                                                                                                                                                     
-        produto,                                                                                                                                                                      
-        carregando,                                                                                                                                                                   
-        quantidade,                                                                                                                                                                   
-        // Ações                                                                                                                                                                      
-        incrementarQuantidade,                                                                                                                                                        
-        decrementarQuantidade,                                                                                                                                                        
-      }; 
+    return { carregando, erro, produto, quantidade,
+        incrementarQuantidade: () => alterarQuantidade((atual) => useCases.incrementarQuantidade(atual)),
+        decrementarQuantidade: () => alterarQuantidade((atual) => useCases.decrementarQuantidade(atual)) };
 }

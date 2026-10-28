@@ -1,30 +1,33 @@
-import { categoria } from "@/model/entities/categoria";
-import { categoriaDataSource } from "@/model/repositories/CategoriaDataSource";
 import { useEffect, useState } from "react";
+import { menuUseCases } from "../di/container";
+import type { categoria } from "../model/entities/categoria";
+import { DomainError } from "../model/errors";
+import type { IMenuUseCases } from "../usecase/iMenuUseCases";
 
-export function useHomeViewModel() {
-  const [carregando, setCarregando] = useState<boolean>(true);
-  const [categorias, setCategorias] = useState<categoria[]>([]);
+export function useHomeViewModel(useCases: IMenuUseCases = menuUseCases) {
+    const [categorias, setCategorias] = useState<categoria[]>([]);
+    const [carregando, setCarregando] = useState(true);
+    const [erro, setErro] = useState<string | null>(null);
 
-  async function carregarCategorias() {
-      try {
+    useEffect(() => {
+        let ativo = true;
         setCarregando(true);
-        const resultado = await categoriaDataSource.BuscarCategorias();
-        setCategorias(resultado);
-      } catch (error) {
-        console.error("Erro ao carregar categorias:", error);
-      } finally {
-        setCarregando(false);
-      }
-    }
+        setErro(null);
 
-  useEffect(() => {
-    carregarCategorias();
-  }, []);
+        async function carregar() {
+            try {
+                const resultado = await useCases.buscarCategorias();
+                if (!ativo) return;
+                setCategorias(resultado);
+            } catch (err) {
+                if (ativo) setErro(err instanceof DomainError ? err.message : "Não foi possível carregar o cardápio. Tente novamente.");
+            } finally {
+                if (ativo) setCarregando(false);
+            }
+        }
+        void carregar();
+        return () => { ativo = false; };
+    }, [useCases]);
 
-  return {
-    categorias,
-    carregando,
-  };
-
+    return { carregando, erro, categorias };
 }

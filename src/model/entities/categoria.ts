@@ -1,9 +1,9 @@
-import { ImageSourcePropType } from "react-native";
+import type { ImagemSource } from "./imagem";
 
 export type categoria = {
     id: string;
     nome: string;
     corBorda: string;
     corSeta: string;
-    imagemUrl: ImageSourcePropType;
+    imagemUrl: ImagemSource;
 }

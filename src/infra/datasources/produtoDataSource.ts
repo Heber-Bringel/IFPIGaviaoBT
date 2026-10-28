@@ -1,6 +1,8 @@
-import { produto } from "../entities/produto";
+import type { produto } from "../../model/entities/produto";
+import type { IProductDataSource } from "../../model/datasources/iProductDataSource";
+import { DataSourceError } from "../../model/errors";
 
-export const ProdutoBD: produto[] = [
+const ProdutoBD: produto[] = [
     {
         id: "1",
         categoriaId: "1",
@@ -107,20 +109,24 @@ export const ProdutoBD: produto[] = [
     },
 ];
 
-class ProdutoDataSource {
-    private DELAY_MS = 600;
-
-    public async buscarPorId(produtoId: string): Promise<produto> {
-        await new Promise((resolve) => setTimeout(resolve, this.DELAY_MS));
-        const produto = ProdutoBD.find((produto: produto) => produto.id == produtoId);
-        return produto!;
+export class ProdutoDataSource implements IProductDataSource {
+    private async consultar<T>(consulta: () => T): Promise<T> {
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 600));
+            return consulta();
+        } catch {
+            throw new DataSourceError("Não foi possível carregar produtos. Tente novamente.");
+        }
     }
 
-    public async buscarPorCategoria(categoriaId: string): Promise<produto[]> {
-        await new Promise((resolve) => setTimeout(resolve, this.DELAY_MS));
-        const produtos = ProdutoBD.filter((produto: produto) => produto.categoriaId == categoriaId);
-        return produtos;
+    buscarPorCategoria(categoriaId: string): Promise<produto[]> {
+        return this.consultar(() => ProdutoBD.filter((item) => item.categoriaId === categoriaId).map((item) => ({ ...item })));
+    }
+
+    buscarPorId(id: string): Promise<produto | undefined> {
+        return this.consultar(() => {
+            const item = ProdutoBD.find((produto) => produto.id === id);
+            return item ? { ...item } : undefined;
+        });
     }
 }
-
-export const produtoDataSource: ProdutoDataSource = new ProdutoDataSource();

@@ -1,7 +1,7 @@
 import { formatarPreco } from "@/utils/formatadorDePreco";
 import { useCategoriaViewModel } from "@/viewmodel/useCategoriaViewModel";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
     ActivityIndicator,
     FlatList,
@@ -15,7 +15,8 @@ import { styles } from "./styles/categoriaStyle";
 
 const CategoriaScreen = () => {
     const router = useRouter();
-    const vm = useCategoriaViewModel();
+    const { id } = useLocalSearchParams<{ id?: string | string[] }>();
+    const vm = useCategoriaViewModel((Array.isArray(id) ? id[0] : id) ?? "");
 
     return (
         <View style={styles.tela}>
@@ -48,6 +49,10 @@ const CategoriaScreen = () => {
                     <ActivityIndicator size="large" color="#501673" />
                     <Text style={styles.loadingTexto}>Buscando itens no banco...</Text>
                 </View>
+            ) : vm.erro ? (
+                <View style={styles.vazioContainer}>
+                    <Text accessibilityRole="alert" style={styles.vazioTexto}>{vm.erro}</Text>
+                </View>
             ) : (
                 <FlatList
                     data={vm.produtos}
@@ -65,7 +70,7 @@ const CategoriaScreen = () => {
                         <TouchableOpacity
                             activeOpacity={0.85}
                             style={styles.cardItem}
-                            onPress={() => router.push(`/item/${item.id}` as any)}
+                            onPress={() => router.push({ pathname: "/item/[id]", params: { id: item.id } })}
                         >
                             {/* Miniatura do Produto */}
                             <Image

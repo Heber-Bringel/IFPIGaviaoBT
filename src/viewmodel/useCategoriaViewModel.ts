@@ -1,42 +1,36 @@
-import { produto } from "@/model/entities/produto";
-import { categoriaDataSource } from "@/model/repositories/CategoriaDataSource";
-import { produtoDataSource } from "@/model/repositories/ProdutoDataSource";
-import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
+import { menuUseCases } from "../di/container";
+import type { produto } from "../model/entities/produto";
+import { DomainError } from "../model/errors";
+import type { IMenuUseCases } from "../usecase/iMenuUseCases";
 
-export function useCategoriaViewModel() {
-    const [carregando, setCarregando] = useState<boolean>(true);
+export function useCategoriaViewModel(id: string, useCases: IMenuUseCases = menuUseCases) {
     const [produtos, setProdutos] = useState<produto[]>([]);
-    const [nomeCategoria, setNomeCategoria] = useState<string>("Cardápio");
-
-    const { id } = useLocalSearchParams<{ id: string }>();
-
-    async function carregarDados() {
-        if (!id) return;
-        try {
-            setCarregando(true);
-            const [resultadoProdutos, categoria] = await Promise.all([
-                produtoDataSource.buscarPorCategoria(id),
-                categoriaDataSource.buscarPorId(id),
-            ]);
-            setProdutos(resultadoProdutos);
-            if (categoria) {
-                setNomeCategoria(categoria.nome);
-            }
-        } catch (erro) {
-            console.error("Erro ao buscar dados da categoria:", erro);
-        } finally {
-            setCarregando(false);
-        }
-    }
+    const [nomeCategoria, setNomeCategoria] = useState("Cardápio");
+    const [carregando, setCarregando] = useState(true);
+    const [erro, setErro] = useState<string | null>(null);
 
     useEffect(() => {
-        carregarDados();
-    }, [id]);
+        let ativo = true;
+        setCarregando(true);
+        setErro(null);
+        setProdutos([]);
+        setNomeCategoria("Cardápio");
+        async function carregar() {
+            try {
+                const resultado = await useCases.buscarCardapio(id);
+                if (!ativo) return;
+                setProdutos(resultado.produtos);
+                setNomeCategoria(resultado.categoria.nome);
+            } catch (err) {
+                if (ativo) setErro(err instanceof DomainError ? err.message : "Não foi possível carregar o cardápio. Tente novamente.");
+            } finally {
+                if (ativo) setCarregando(false);
+            }
+        }
+        void carregar();
+        return () => { ativo = false; };
+    }, [id, useCases]);
 
-    return {
-        carregando,
-        produtos,
-        nomeCategoria,
-    };
+    return { carregando, erro, produtos, nomeCategoria };
 }
